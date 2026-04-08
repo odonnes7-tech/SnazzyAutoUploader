@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Loader2, TrendingUp, Package, Clock, DollarSign, Tag } from 'lucide-react';
+import { Loader2, TrendingUp, Package, Clock, DollarSign, Tag, ImageOff } from 'lucide-react';
+import ListingModal from '@/components/ListingModal';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { subDays, subWeeks, subMonths, format, differenceInDays, parseISO, startOfDay, startOfWeek, startOfMonth } from 'date-fns';
 
@@ -29,6 +30,12 @@ export default function Analytics() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('30d');
+  const [selectedListing, setSelectedListing] = useState(null);
+
+  const handleUpdate = (id, changes) => {
+    setListings((prev) => prev.map((l) => l.id === id ? { ...l, ...changes } : l));
+    setSelectedListing((prev) => prev?.id === id ? { ...prev, ...changes } : prev);
+  };
 
   useEffect(() => {
     base44.entities.Listing.list('-created_date', 500).then((data) => {
@@ -61,6 +68,7 @@ export default function Analytics() {
   const shelfDays = available.map((l) => ({
     name: l.name,
     days: differenceInDays(new Date(), new Date(l.created_date)),
+    listing: l,
   }));
   const avgShelf = shelfDays.length
     ? Math.round(shelfDays.reduce((s, x) => s + x.days, 0) / shelfDays.length)
@@ -201,8 +209,17 @@ export default function Analytics() {
                 ) : (
                   <ul className="space-y-3">
                     {longestUnsold.map((item, i) => (
-                      <li key={i} className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-foreground truncate">{item.name}</span>
+                      <li key={i} className="flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-1.5 -mx-1.5 transition-colors" onClick={() => setSelectedListing(item.listing)}>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                            {item.listing.bg_removed_url || item.listing.photo_url ? (
+                              <img src={item.listing.bg_removed_url || item.listing.photo_url} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-4 h-4 text-muted-foreground" /></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-foreground truncate">{item.name}</span>
+                        </div>
                         <span className="text-sm font-bold text-red-400 whitespace-nowrap">{item.days}d</span>
                       </li>
                     ))}
@@ -219,8 +236,17 @@ export default function Analytics() {
                 ) : (
                   <ul className="space-y-3">
                     {shortestUnsold.map((item, i) => (
-                      <li key={i} className="flex items-center justify-between gap-2">
-                        <span className="text-sm text-foreground truncate">{item.name}</span>
+                      <li key={i} className="flex items-center justify-between gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-1.5 -mx-1.5 transition-colors" onClick={() => setSelectedListing(item.listing)}>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                            {item.listing.bg_removed_url || item.listing.photo_url ? (
+                              <img src={item.listing.bg_removed_url || item.listing.photo_url} alt={item.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center"><ImageOff className="w-4 h-4 text-muted-foreground" /></div>
+                            )}
+                          </div>
+                          <span className="text-sm text-foreground truncate">{item.name}</span>
+                        </div>
                         <span className="text-sm font-bold text-green-500 whitespace-nowrap">{item.days}d</span>
                       </li>
                     ))}
@@ -231,6 +257,8 @@ export default function Analytics() {
           </>
         )}
       </main>
+
+      <ListingModal listing={selectedListing} onClose={() => setSelectedListing(null)} onUpdate={handleUpdate} />
     </div>
   );
 }
