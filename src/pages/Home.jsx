@@ -76,14 +76,26 @@ export default function Home() {
 Generate:
 1. A catchy, specific item name (include brand if visible, style, and key features)
 2. A description that contains ONLY: ALL measurements you can read from the measuring board (e.g. "Length: 24in, Chest: 18in, Waist: 16in, Inseam: 30in"), followed by a blank line and then 10-15 relevant Depop hashtags (e.g. #vintage #denim #y2k). Do NOT include any prose description of the item.
+3. category: pick the single best match from: T-shirts, Hoodies, Sweatshirts, Jumpers, Cardigans, Shirts, Polo shirts, Blouses, Jeans, Trousers, Shorts, Skirts, Dresses, Jackets, Coats, Blazers, Suits, Activewear, Swimwear, Underwear, Socks, Shoes, Boots, Trainers, Sandals, Bags, Hats, Scarves, Belts, Jewellery, Sunglasses
+4. condition: pick from: Brand new, Like new, Used - Excellent, Used - Good, Used - Fair
+5. color: pick the single best match from: Black, Grey, White, Brown, Tan, Cream, Yellow, Red, Pink, Orange, Purple, Blue, Navy, Green, Khaki, Multicolour
+6. source: pick from: Vintage, Preloved, Reworked / Upcycled, Custom, Handmade, Deadstock, Designer, Repaired
+7. age: pick from: Modern, 00s, 90s, 80s, 70s, 60s, 50s, Antique
+8. style: pick the single best match from: Streetwear, Sportswear, Loungewear, Goth, Retro, Boho, Western, Indie, Skater, Preppy, Minimalist, Y2K, Grunge, Classic
 
-Return ONLY a JSON object with keys: name, description (measurements + hashtags only, no item description)`,
+Return ONLY a JSON object with keys: name, description, category, condition, color, source, age, style. Values must exactly match one of the options listed above.`,
       file_urls: [file_url],
       response_json_schema: {
         type: 'object',
         properties: {
           name: { type: 'string' },
           description: { type: 'string' },
+          category: { type: 'string' },
+          condition: { type: 'string' },
+          color: { type: 'string' },
+          source: { type: 'string' },
+          age: { type: 'string' },
+          style: { type: 'string' },
         },
       },
     });
@@ -92,6 +104,12 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
       ...prev,
       name: result.name || '',
       description: result.description || '',
+      category: result.category || '',
+      condition: result.condition || '',
+      color: result.color || '',
+      source: result.source || '',
+      age: result.age || '',
+      style: result.style || '',
     }));
     setAnalyzed(true);
     setAnalyzing(false);
