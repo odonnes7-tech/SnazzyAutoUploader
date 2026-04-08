@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, RotateCcw, CheckCircle, Loader2, AlertCircle, Scissors } from 'lucide-react';
+import { Sparkles, Send, RotateCcw, Loader2, AlertCircle, Scissors } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import heic2any from 'heic2any';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
@@ -100,9 +101,14 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
     setSubmitting(true);
     setError(null);
 
-    // Placeholder: Depop API submission
-    // When you have API credentials, wire this up to your backend function
-    await new Promise((r) => setTimeout(r, 1500));
+    // Save listing to gallery
+    await base44.entities.Listing.create({
+      name: listing.name,
+      price: listing.price,
+      description: listing.description,
+      photo_url: photo?.url || null,
+      bg_removed_url: bgRemovedUrl || null,
+    });
 
     setSubmitted(true);
     setSubmitting(false);
@@ -127,15 +133,20 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
             alt="Snazzy Boutique & Gifts"
             className="h-12 w-auto"
           />
-          {(photo || analyzed) && (
-            <button
-              onClick={reset}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Start over
-            </button>
-          )}
+          <div className="flex items-center gap-4">
+            <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">
+              Gallery
+            </Link>
+            {(photo || analyzed) && (
+              <button
+                onClick={reset}
+                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Start over
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
