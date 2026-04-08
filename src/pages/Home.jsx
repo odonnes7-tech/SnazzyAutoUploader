@@ -7,7 +7,7 @@ import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import ListingEditor from '@/components/ListingEditor';
 
-const EMPTY_LISTING = { name: '', price: '', description: '' };
+const EMPTY_LISTING = { name: '', price: '', description: '', boost: false, category: '', condition: '', color: '', source: '', age: '', style: '' };
 
 export default function Home() {
   const [photo, setPhoto] = useState(null);
@@ -108,6 +108,13 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
       description: listing.description,
       photo_url: photo?.url || null,
       bg_removed_url: bgRemovedUrl || null,
+      boost: listing.boost || false,
+      category: listing.category || '',
+      condition: listing.condition || '',
+      color: listing.color || '',
+      source: listing.source || '',
+      age: listing.age || '',
+      style: listing.style || '',
     });
 
     setSubmitted(true);

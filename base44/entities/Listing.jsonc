@@ -23,6 +23,28 @@
     "is_sold": {
       "type": "boolean",
       "default": false
+    },
+    "boost": {
+      "type": "boolean",
+      "default": false
+    },
+    "category": {
+      "type": "string"
+    },
+    "condition": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "age": {
+      "type": "string"
+    },
+    "style": {
+      "type": "string"
     }
   },
   "required": [
