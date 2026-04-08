@@ -107,7 +107,7 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
       category: result.category || '',
       condition: result.condition || '',
       color: result.color || '',
-      source: result.source || '',
+      source: 'Vintage',
       age: result.age || '',
       style: result.style || '',
     }));
