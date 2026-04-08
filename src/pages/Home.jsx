@@ -191,7 +191,9 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
                   </p>
                 </div>
 
-                <PhotoUploader onPhotoSelected={handlePhotoSelected} photo={photo} />
+                <div className={`rounded-2xl transition-all duration-300 ${analyzed ? 'ring-2 ring-green-400 ring-offset-2' : ''}`}>
+                  <PhotoUploader onPhotoSelected={handlePhotoSelected} photo={photo} />
+                </div>
 
                 {photo && !analyzed && (
                   <motion.button
@@ -247,16 +249,7 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
                   </motion.button>
                 )}
 
-                {analyzed && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3"
-                  >
-                    <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>Analysis complete — edit below before submitting</span>
-                  </motion.div>
-                )}
+
               </div>
 
               {/* Right: Listing Editor */}
