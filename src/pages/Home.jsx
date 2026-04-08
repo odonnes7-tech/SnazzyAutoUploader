@@ -146,22 +146,31 @@ Return ONLY a JSON object with keys: name, description (contains everything — 
               key="success"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-24 text-center"
+              className="flex flex-col items-center justify-center py-32 text-center"
             >
-              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
-                <CheckCircle className="w-10 h-10 text-green-600" />
-              </div>
-              <h2 className="font-playfair text-3xl font-semibold text-foreground mb-2">
-                Listing submitted!
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-8"
+              >
+                <CheckCircle className="w-12 h-12 text-green-600" />
+              </motion.div>
+              <h2 className="font-playfair text-4xl font-semibold text-foreground mb-3">
+                Upload Complete!
               </h2>
-              <p className="text-muted-foreground mb-8">
-                Your item has been sent to Depop successfully.
+              <p className="text-muted-foreground text-lg mb-2">
+                Your listing is now live on Depop.
+              </p>
+              <p className="text-muted-foreground text-sm mb-10">
+                Ready to list your next item?
               </p>
               <button
                 onClick={reset}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+                className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20 flex items-center gap-2"
               >
-                List another item
+                <Sparkles className="w-5 h-5" />
+                Upload Another Item
               </button>
             </motion.div>
           ) : (
