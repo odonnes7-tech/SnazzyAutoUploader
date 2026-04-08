@@ -73,12 +73,9 @@ export default function Gallery() {
             />
           </Link>
           <nav className="flex items-center gap-4 text-sm font-medium">
-            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
-              Upload
-            </Link>
-            <Link to="/gallery" className="text-foreground">
-              Gallery
-            </Link>
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Upload</Link>
+            <Link to="/gallery" className="text-foreground">Gallery</Link>
+            <Link to="/analytics" className="text-muted-foreground hover:text-foreground transition-colors">Analytics</Link>
           </nav>
         </div>
       </header>

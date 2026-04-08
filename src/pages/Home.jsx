@@ -134,9 +134,8 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
             className="h-12 w-auto"
           />
           <div className="flex items-center gap-4">
-            <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">
-              Gallery
-            </Link>
+            <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Gallery</Link>
+            <Link to="/analytics" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Analytics</Link>
             {(photo || analyzed) && (
               <button
                 onClick={reset}
