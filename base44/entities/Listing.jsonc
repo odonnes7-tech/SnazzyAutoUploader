@@ -16,6 +16,13 @@
     },
     "bg_removed_url": {
       "type": "string"
+    },
+    "depop_url": {
+      "type": "string"
+    },
+    "is_sold": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

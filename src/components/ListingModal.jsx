@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ImageOff, DollarSign } from 'lucide-react';
+import { X, ImageOff, DollarSign, ExternalLink } from 'lucide-react';
 
 export default function ListingModal({ listing, onClose }) {
   if (!listing) return null;
@@ -26,11 +26,16 @@ export default function ListingModal({ listing, onClose }) {
               <img
                 src={listing.bg_removed_url || listing.photo_url}
                 alt={listing.name}
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover transition-all ${listing.is_sold ? 'blur-[2px]' : ''}`}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <ImageOff className="w-12 h-12 text-muted-foreground" />
+              </div>
+            )}
+            {listing.is_sold && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-4xl font-black tracking-widest text-gray-200 drop-shadow-lg">SOLD</span>
               </div>
             )}
             <button
@@ -56,9 +61,25 @@ export default function ListingModal({ listing, onClose }) {
                 {listing.description}
               </p>
             )}
-            <p className="text-xs text-muted-foreground pt-1">
-              Listed {new Date(listing.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </p>
+            <div className="flex items-center justify-between pt-1">
+              <p className="text-xs text-muted-foreground">
+                Listed {new Date(listing.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+              {listing.is_sold && (
+                <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">Sold</span>
+              )}
+            </div>
+            {listing.depop_url && (
+              <a
+                href={listing.depop_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-sm text-primary font-medium hover:underline"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View on Depop
+              </a>
+            )}
           </div>
         </motion.div>
       </motion.div>

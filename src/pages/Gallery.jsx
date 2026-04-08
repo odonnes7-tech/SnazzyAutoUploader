@@ -143,16 +143,21 @@ export default function Gallery() {
                 onClick={() => setSelected(listing)}
                 className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
               >
-                <div className="aspect-square bg-muted overflow-hidden">
+                <div className="aspect-square bg-muted overflow-hidden relative">
                   {listing.bg_removed_url || listing.photo_url ? (
                     <img
                       src={listing.bg_removed_url || listing.photo_url}
                       alt={listing.name}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-all ${listing.is_sold ? 'blur-[2px]' : ''}`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <ImageOff className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  {listing.is_sold && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-2xl font-black tracking-widest text-gray-200 drop-shadow-lg">SOLD</span>
                     </div>
                   )}
                 </div>
