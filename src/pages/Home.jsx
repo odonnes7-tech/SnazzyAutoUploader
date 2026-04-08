@@ -72,11 +72,11 @@ export default function Home() {
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `You are an expert vintage/thrift clothing reseller. Analyze this photo of a clothing item placed on a measuring board.
 
-Extract the measurements visible in the photo (look for ruler/measuring tape markings), and generate:
-1. A catchy, specific item name (brand if visible, style, key features)
-2. A single description block that includes: item type, color, material (if identifiable), condition, ALL measurements you can read from the measuring board (e.g. length, width, chest, waist, inseam, etc.), followed by a blank line and then 10-15 relevant Depop hashtags (e.g. #vintage #denim #y2k). Everything in one field — no separate hashtags field.
+Generate:
+1. A catchy, specific item name (include brand if visible, style, and key features)
+2. A description that contains ONLY: ALL measurements you can read from the measuring board (e.g. "Length: 24in, Chest: 18in, Waist: 16in, Inseam: 30in"), followed by a blank line and then 10-15 relevant Depop hashtags (e.g. #vintage #denim #y2k). Do NOT include any prose description of the item.
 
-Return ONLY a JSON object with keys: name, description (contains everything — details, measurements, and hashtags at the bottom)`,
+Return ONLY a JSON object with keys: name, description (measurements + hashtags only, no item description)`,
       file_urls: [file_url],
       response_json_schema: {
         type: 'object',
