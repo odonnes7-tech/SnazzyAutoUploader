@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Send, RotateCcw, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import heic2any from 'heic2any';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import ListingEditor from '@/components/ListingEditor';
@@ -28,8 +29,15 @@ export default function Home() {
     setAnalyzing(true);
     setError(null);
 
+    // Convert HEIC to JPEG if needed
+    let fileToUpload = photo.file;
+    if (photo.file.type === 'image/heic' || photo.file.name?.toLowerCase().endsWith('.heic')) {
+      const converted = await heic2any({ blob: photo.file, toType: 'image/jpeg', quality: 0.85 });
+      fileToUpload = new File([converted], photo.file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+    }
+
     // Upload the file first
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: photo.file });
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
 
     // Ask AI to analyze the photo
     const result = await base44.integrations.Core.InvokeLLM({
