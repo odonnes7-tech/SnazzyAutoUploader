@@ -154,7 +154,7 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
                 className="mb-8"
               >
-                <img src="https://media.base44.com/images/public/69d5a5fae0f16dce3d35a112/98839379e_depop.png" alt="Depop" className="w-24 h-24" />
+                <img src="https://media.base44.com/images/public/69d5a5fae0f16dce3d35a112/3894110f1_depop.png" alt="Depop" className="w-24 h-24" />
               </motion.div>
               <h2 className="font-playfair text-4xl font-semibold text-foreground mb-3">
                 Upload Complete!
