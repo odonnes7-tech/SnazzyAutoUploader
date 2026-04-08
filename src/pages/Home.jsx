@@ -92,10 +92,11 @@ Return ONLY a JSON object with keys: name, description (contains everything — 
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-playfair text-2xl font-semibold text-foreground">Depop Lister</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">AI-powered clothing listings</p>
-          </div>
+          <img
+            src="https://media.base44.com/images/public/69d5a5fae0f16dce3d35a112/44a38e278_image.png"
+            alt="Snazzy Boutique & Gifts"
+            className="h-12 w-auto"
+          />
           {(photo || analyzed) && (
             <button
               onClick={reset}
