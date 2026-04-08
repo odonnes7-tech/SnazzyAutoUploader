@@ -1,8 +1,22 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ImageOff, DollarSign, ExternalLink } from 'lucide-react';
+import { X, ImageOff, DollarSign, ExternalLink, CheckCircle, Circle } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
-export default function ListingModal({ listing, onClose }) {
+export default function ListingModal({ listing, onClose, onUpdate }) {
+  const [isSold, setIsSold] = useState(listing?.is_sold ?? false);
+  const [toggling, setToggling] = useState(false);
+
   if (!listing) return null;
+
+  const toggleSold = async () => {
+    setToggling(true);
+    const newVal = !isSold;
+    await base44.entities.Listing.update(listing.id, { is_sold: newVal });
+    setIsSold(newVal);
+    if (onUpdate) onUpdate(listing.id, { is_sold: newVal });
+    setToggling(false);
+  };
 
   return (
     <AnimatePresence>
@@ -26,14 +40,14 @@ export default function ListingModal({ listing, onClose }) {
               <img
                 src={listing.bg_removed_url || listing.photo_url}
                 alt={listing.name}
-                className={`w-full h-full object-cover transition-all ${listing.is_sold ? 'blur-[2px]' : ''}`}
+                className={`w-full h-full object-cover transition-all ${isSold ? 'blur-[2px]' : ''}`}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <ImageOff className="w-12 h-12 text-muted-foreground" />
               </div>
             )}
-            {listing.is_sold && (
+            {isSold && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-4xl font-black tracking-widest text-gray-200 drop-shadow-lg">SOLD</span>
               </div>
@@ -65,9 +79,18 @@ export default function ListingModal({ listing, onClose }) {
               <p className="text-xs text-muted-foreground">
                 Listed {new Date(listing.created_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
-              {listing.is_sold && (
-                <span className="text-xs font-bold text-gray-400 tracking-widest uppercase">Sold</span>
-              )}
+              <button
+                onClick={toggleSold}
+                disabled={toggling}
+                className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                  isSold
+                    ? 'bg-gray-100 border-gray-300 text-gray-500 hover:bg-red-50 hover:border-red-300 hover:text-red-500'
+                    : 'bg-green-50 border-green-300 text-green-600 hover:bg-green-100'
+                } disabled:opacity-50`}
+              >
+                {isSold ? <Circle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                {isSold ? 'Mark as Available' : 'Mark as Sold'}
+              </button>
             </div>
             {listing.depop_url && (
               <a

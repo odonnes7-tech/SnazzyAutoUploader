@@ -17,6 +17,11 @@ export default function Gallery() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+
+  const handleUpdate = (id, changes) => {
+    setListings((prev) => prev.map((l) => l.id === id ? { ...l, ...changes } : l));
+    setSelected((prev) => prev?.id === id ? { ...prev, ...changes } : prev);
+  };
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('-created_date');
 
@@ -173,7 +178,7 @@ export default function Gallery() {
         )}
       </main>
 
-      <ListingModal listing={selected} onClose={() => setSelected(null)} />
+      <ListingModal listing={selected} onClose={() => setSelected(null)} onUpdate={handleUpdate} />
     </div>
   );
 }
