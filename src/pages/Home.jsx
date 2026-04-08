@@ -6,7 +6,7 @@ import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import ListingEditor from '@/components/ListingEditor';
 
-const EMPTY_LISTING = { name: '', price: '', description: '', hashtags: '' };
+const EMPTY_LISTING = { name: '', price: '', description: '' };
 
 export default function Home() {
   const [photo, setPhoto] = useState(null);
@@ -45,17 +45,15 @@ export default function Home() {
 
 Extract the measurements visible in the photo (look for ruler/measuring tape markings), and generate:
 1. A catchy, specific item name (brand if visible, style, key features)
-2. A detailed seller description including: item type, color, material (if identifiable), condition, and ALL measurements you can read from the measuring board (e.g. length, width, chest, waist, inseam, etc.)
-3. Relevant hashtags for Depop (10-15 tags, include style era, item type, color, size if visible)
+2. A single description block that includes: item type, color, material (if identifiable), condition, ALL measurements you can read from the measuring board (e.g. length, width, chest, waist, inseam, etc.), followed by a blank line and then 10-15 relevant Depop hashtags (e.g. #vintage #denim #y2k). Everything in one field — no separate hashtags field.
 
-Return ONLY a JSON object with keys: name, description, hashtags (hashtags as a single string with spaces between each #tag)`,
+Return ONLY a JSON object with keys: name, description (contains everything — details, measurements, and hashtags at the bottom)`,
       file_urls: [file_url],
       response_json_schema: {
         type: 'object',
         properties: {
           name: { type: 'string' },
           description: { type: 'string' },
-          hashtags: { type: 'string' },
         },
       },
     });
@@ -64,7 +62,6 @@ Return ONLY a JSON object with keys: name, description, hashtags (hashtags as a 
       ...prev,
       name: result.name || '',
       description: result.description || '',
-      hashtags: result.hashtags || '',
     }));
     setAnalyzed(true);
     setAnalyzing(false);

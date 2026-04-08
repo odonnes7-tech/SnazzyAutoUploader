@@ -1,11 +1,7 @@
-import { DollarSign, Tag } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 export default function ListingEditor({ listing, onChange }) {
   const update = (field, value) => onChange({ ...listing, [field]: value });
-
-  const handleHashtagInput = (e) => {
-    update('hashtags', e.target.value);
-  };
 
   return (
     <div className="space-y-5">
@@ -42,7 +38,7 @@ export default function ListingEditor({ listing, onChange }) {
         </div>
       </div>
 
-      {/* Description */}
+      {/* Description + Hashtags */}
       <div className="space-y-1.5">
         <label className="text-sm font-semibold text-foreground tracking-wide uppercase">
           Description
@@ -50,26 +46,10 @@ export default function ListingEditor({ listing, onChange }) {
         <textarea
           value={listing.description}
           onChange={(e) => update('description', e.target.value)}
-          placeholder="Item description will appear here after analysis..."
-          rows={6}
+          placeholder="Item description, measurements, and hashtags will appear here after analysis..."
+          rows={10}
           className="w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm resize-none leading-relaxed"
         />
-      </div>
-
-      {/* Hashtags */}
-      <div className="space-y-1.5">
-        <label className="text-sm font-semibold text-foreground tracking-wide uppercase flex items-center gap-1.5">
-          <Tag className="w-3.5 h-3.5" />
-          Hashtags
-        </label>
-        <input
-          type="text"
-          value={listing.hashtags}
-          onChange={handleHashtagInput}
-          placeholder="#vintage #denim #y2k"
-          className="w-full px-4 py-3 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm"
-        />
-        <p className="text-xs text-muted-foreground">Space-separated hashtags</p>
       </div>
     </div>
   );
