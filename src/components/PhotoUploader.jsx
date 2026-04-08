@@ -1,91 +1,103 @@
 import { useRef, useState } from 'react';
-import { Upload, Camera, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Camera, X, Plus } from 'lucide-react';
 
-export default function PhotoUploader({ onPhotoSelected, photo }) {
+export default function PhotoUploader({ onPhotosChanged, photos = [] }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
 
-  const handleFile = (file) => {
-    if (!file || !file.type.startsWith('image/')) return;
-    const url = URL.createObjectURL(file);
-    onPhotoSelected({ file, url });
+  const handleFiles = (files) => {
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/') || f.name?.toLowerCase().endsWith('.heic'));
+    if (!imageFiles.length) return;
+    const newPhotos = imageFiles.map((file) => ({ file, url: URL.createObjectURL(file) }));
+    onPhotosChanged([...photos, ...newPhotos]);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     setDragging(false);
-    handleFile(e.dataTransfer.files[0]);
+    handleFiles(e.dataTransfer.files);
+  };
+
+  const removePhoto = (index) => {
+    onPhotosChanged(photos.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="w-full">
-      <AnimatePresence mode="wait">
-        {photo ? (
-          <motion.div
-            key="preview"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="relative rounded-2xl overflow-hidden bg-muted aspect-[4/3] group"
-          >
-            <img
-              src={photo.url}
-              alt="Clothing item"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
-              <button
-                onClick={() => onPhotoSelected(null)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-2 shadow-lg"
-              >
-                <X className="w-5 h-5 text-foreground" />
-              </button>
+    <div className="w-full space-y-3">
+      {/* Photo grid */}
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map((photo, i) => (
+            <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
+              <img src={photo.url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
+                <button
+                  onClick={() => removePhoto(i)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1.5 shadow-lg"
+                >
+                  <X className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+              {i === 0 && (
+                <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-md font-medium">
+                  Main
+                </span>
+              )}
             </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="uploader"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={handleDrop}
+          ))}
+
+          {/* Add more tile */}
+          <button
+            type="button"
             onClick={() => inputRef.current?.click()}
-            className={`
-              relative rounded-2xl border-2 border-dashed cursor-pointer
-              aspect-[4/3] flex flex-col items-center justify-center gap-4
-              transition-all duration-300
-              ${dragging
-                ? 'border-primary bg-accent scale-[1.01]'
-                : 'border-border bg-muted/40 hover:border-primary/50 hover:bg-accent/30'
-              }
-            `}
+            className="aspect-square rounded-xl border-2 border-dashed border-border bg-muted/40 hover:border-primary/50 hover:bg-accent/30 transition-all flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary"
           >
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Camera className="w-8 h-8 text-primary" />
-            </div>
-            <div className="text-center px-6">
-              <p className="font-semibold text-foreground text-lg">Drop your photo here</p>
-              <p className="text-muted-foreground text-sm mt-1">
-                Place clothing on a measuring board, then upload
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Upload className="w-3.5 h-3.5" />
-              <span>JPG, PNG, HEIC supported</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <Plus className="w-6 h-6" />
+            <span className="text-xs font-medium">Add</span>
+          </button>
+        </div>
+      )}
+
+      {/* Drop zone (only shown when no photos yet) */}
+      {photos.length === 0 && (
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+          className={`
+            relative rounded-2xl border-2 border-dashed cursor-pointer
+            aspect-[4/3] flex flex-col items-center justify-center gap-4
+            transition-all duration-300
+            ${dragging
+              ? 'border-primary bg-accent scale-[1.01]'
+              : 'border-border bg-muted/40 hover:border-primary/50 hover:bg-accent/30'
+            }
+          `}
+        >
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Camera className="w-8 h-8 text-primary" />
+          </div>
+          <div className="text-center px-6">
+            <p className="font-semibold text-foreground text-lg">Drop your photos here</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              Place clothing on a measuring board, then upload
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Upload className="w-3.5 h-3.5" />
+            <span>JPG, PNG, HEIC supported · Multiple photos OK</span>
+          </div>
+        </div>
+      )}
+
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        multiple
         className="hidden"
-        onChange={(e) => handleFile(e.target.files[0])}
+        onChange={(e) => handleFiles(e.target.files)}
       />
     </div>
   );

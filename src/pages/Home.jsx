@@ -9,8 +9,16 @@ import ListingEditor from '@/components/ListingEditor';
 
 const EMPTY_LISTING = { name: '', price: '', description: '', boost: false, category: '', condition: '', color: '', source: '', age: '', style: '' };
 
+async function prepareFile(file) {
+  if (file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic')) {
+    const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+    return new File([converted], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+  }
+  return file;
+}
+
 export default function Home() {
-  const [photo, setPhoto] = useState(null);
+  const [photos, setPhotos] = useState([]);
   const [listing, setListing] = useState(EMPTY_LISTING);
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzed, setAnalyzed] = useState(false);
@@ -20,45 +28,34 @@ export default function Home() {
   const [removingBg, setRemovingBg] = useState(false);
   const [bgRemovedUrl, setBgRemovedUrl] = useState(null);
 
-  const handlePhotoSelected = (p) => {
-    setPhoto(p);
-    setAnalyzed(false);
-    setListing(EMPTY_LISTING);
+  const handlePhotosChanged = (newPhotos) => {
+    setPhotos(newPhotos);
+    if (newPhotos.length === 0) {
+      setAnalyzed(false);
+      setListing(EMPTY_LISTING);
+      setBgRemovedUrl(null);
+    }
     setError(null);
-    setBgRemovedUrl(null);
   };
 
+  const mainPhoto = photos[0] || null;
+
   const removeBackground = async () => {
-    if (!photo) return;
+    if (!mainPhoto) return;
     setRemovingBg(true);
     setError(null);
-
-    // Upload the original file first to get a URL
-    let fileToUpload = photo.file;
-    if (photo.file.type === 'image/heic' || photo.file.name?.toLowerCase().endsWith('.heic')) {
-      const converted = await heic2any({ blob: photo.file, toType: 'image/jpeg', quality: 0.85 });
-      fileToUpload = new File([converted], photo.file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
-    }
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
-
+    const file = await prepareFile(mainPhoto.file);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
     const response = await base44.functions.invoke('removeBg', { image_url: file_url });
     setBgRemovedUrl(response.data.result_url);
     setRemovingBg(false);
   };
 
   const analyzePhoto = async () => {
-    if (!photo) return;
+    if (!mainPhoto) return;
     setAnalyzing(true);
     setError(null);
 
-    // Convert HEIC to JPEG if needed
-    let fileToUpload = photo.file;
-    if (photo.file.type === 'image/heic' || photo.file.name?.toLowerCase().endsWith('.heic')) {
-      const converted = await heic2any({ blob: photo.file, toType: 'image/jpeg', quality: 0.85 });
-      fileToUpload = new File([converted], photo.file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
-    }
-
-    // If background was removed, upload the result as a data URL blob
     let file_url;
     if (bgRemovedUrl) {
       const res = await fetch(bgRemovedUrl);
@@ -66,10 +63,10 @@ export default function Home() {
       const bgFile = new File([blob], 'bg-removed.png', { type: 'image/png' });
       ({ file_url } = await base44.integrations.Core.UploadFile({ file: bgFile }));
     } else {
-      ({ file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload }));
+      const file = await prepareFile(mainPhoto.file);
+      ({ file_url } = await base44.integrations.Core.UploadFile({ file }));
     }
 
-    // Ask AI to analyze the photo
     const result = await base44.integrations.Core.InvokeLLM({
       prompt: `You are an expert vintage/thrift clothing reseller. Analyze this photo of a clothing item placed on a measuring board.
 
@@ -119,12 +116,21 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
     setSubmitting(true);
     setError(null);
 
-    // Save listing to gallery
+    // Upload all photos and collect URLs
+    const uploadedUrls = await Promise.all(
+      photos.map(async (p) => {
+        const file = await prepareFile(p.file);
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        return file_url;
+      })
+    );
+
     await base44.entities.Listing.create({
       name: listing.name,
       price: listing.price,
       description: listing.description,
-      photo_url: photo?.url || null,
+      photo_url: uploadedUrls[0] || null,
+      photo_urls: uploadedUrls,
       bg_removed_url: bgRemovedUrl || null,
       boost: listing.boost || false,
       category: listing.category || '',
@@ -140,7 +146,7 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
   };
 
   const reset = () => {
-    setPhoto(null);
+    setPhotos([]);
     setListing(EMPTY_LISTING);
     setAnalyzed(false);
     setSubmitted(false);
@@ -161,7 +167,7 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
           <div className="flex items-center gap-4">
             <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Gallery</Link>
             <Link to="/analytics" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Analytics</Link>
-            {(photo || analyzed) && (
+            {(photos.length > 0 || analyzed) && (
               <button
                 onClick={reset}
                 className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -215,22 +221,22 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
               animate={{ opacity: 1 }}
               className="grid grid-cols-1 lg:grid-cols-2 gap-10"
             >
-              {/* Left: Photo */}
+              {/* Left: Photos */}
               <div className="space-y-5">
                 <div>
                   <h2 className="font-playfair text-xl font-medium text-foreground mb-1">
-                    Upload Photo
+                    Upload Photos
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Lay the item flat on a measuring board for best results
+                    Lay the item flat on a measuring board for best results · First photo is main
                   </p>
                 </div>
 
                 <div className={`rounded-2xl transition-all duration-300 ${analyzed ? 'ring-2 ring-green-400 ring-offset-2' : ''}`}>
-                  <PhotoUploader onPhotoSelected={handlePhotoSelected} photo={photo} />
+                  <PhotoUploader onPhotosChanged={handlePhotosChanged} photos={photos} />
                 </div>
 
-                {photo && !analyzed && (
+                {mainPhoto && !analyzed && (
                   <motion.button
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -246,7 +252,7 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
                     ) : (
                       <>
                         <Scissors className="w-4 h-4" />
-                        Remove Background (optional)
+                        Remove Background from Main Photo (optional)
                       </>
                     )}
                   </motion.button>
@@ -262,7 +268,7 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
                   </motion.div>
                 )}
 
-                {photo && !analyzed && (
+                {mainPhoto && !analyzed && (
                   <motion.button
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -283,8 +289,6 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
                     )}
                   </motion.button>
                 )}
-
-
               </div>
 
               {/* Right: Listing Editor */}
