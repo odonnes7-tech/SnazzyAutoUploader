@@ -1,19 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { RotateCcw, ImageOff, Loader2 } from 'lucide-react';
+import { ImageOff, Loader2, Search, SlidersHorizontal } from 'lucide-react';
+import ListingModal from '@/components/ListingModal';
+
+const SORT_OPTIONS = [
+  { value: '-created_date', label: 'Newest first' },
+  { value: 'created_date', label: 'Oldest first' },
+  { value: 'name', label: 'Name A–Z' },
+  { value: '-price', label: 'Price high–low' },
+  { value: 'price', label: 'Price low–high' },
+];
 
 export default function Gallery() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState('-created_date');
 
   useEffect(() => {
-    base44.entities.Listing.list('-created_date', 50).then((data) => {
+    base44.entities.Listing.list('-created_date', 200).then((data) => {
       setListings(data);
       setLoading(false);
     });
   }, []);
+
+  const filtered = useMemo(() => {
+    let result = [...listings];
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (l) =>
+          l.name?.toLowerCase().includes(q) ||
+          l.description?.toLowerCase().includes(q)
+      );
+    }
+
+    result.sort((a, b) => {
+      const desc = sort.startsWith('-');
+      const key = desc ? sort.slice(1) : sort;
+      const av = a[key] ?? '';
+      const bv = b[key] ?? '';
+      if (key === 'price') {
+        return desc ? parseFloat(bv) - parseFloat(av) : parseFloat(av) - parseFloat(bv);
+      }
+      return desc
+        ? String(bv).localeCompare(String(av))
+        : String(av).localeCompare(String(bv));
+    });
+
+    return result;
+  }, [listings, search, sort]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,9 +79,35 @@ export default function Gallery() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="font-playfair text-3xl font-semibold text-foreground mb-1">My Listings</h1>
-          <p className="text-muted-foreground text-sm">All items uploaded to Depop</p>
+          <p className="text-muted-foreground text-sm">{listings.length} item{listings.length !== 1 ? 's' : ''} uploaded to Depop</p>
+        </div>
+
+        {/* Search & Filter */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or description..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+            />
+          </div>
+          <div className="relative">
+            <SlidersHorizontal className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="pl-10 pr-8 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all appearance-none cursor-pointer"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -60,15 +126,22 @@ export default function Gallery() {
               Upload an Item
             </Link>
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <Search className="w-10 h-10 text-muted-foreground mb-3" />
+            <p className="text-foreground font-medium mb-1">No results found</p>
+            <p className="text-muted-foreground text-sm">Try a different search term</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-            {listings.map((listing, i) => (
+            {filtered.map((listing, i) => (
               <motion.div
                 key={listing.id}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-shadow"
+                transition={{ delay: i * 0.03 }}
+                onClick={() => setSelected(listing)}
+                className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
               >
                 <div className="aspect-square bg-muted overflow-hidden">
                   {listing.bg_removed_url || listing.photo_url ? (
@@ -94,6 +167,8 @@ export default function Gallery() {
           </div>
         )}
       </main>
+
+      <ListingModal listing={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
