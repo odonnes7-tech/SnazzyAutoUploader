@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Send, RotateCcw, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, RotateCcw, CheckCircle, Loader2, AlertCircle, Scissors } from 'lucide-react';
 import heic2any from 'heic2any';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
@@ -16,12 +16,33 @@ export default function Home() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
+  const [removingBg, setRemovingBg] = useState(false);
+  const [bgRemovedUrl, setBgRemovedUrl] = useState(null);
 
   const handlePhotoSelected = (p) => {
     setPhoto(p);
     setAnalyzed(false);
     setListing(EMPTY_LISTING);
     setError(null);
+    setBgRemovedUrl(null);
+  };
+
+  const removeBackground = async () => {
+    if (!photo) return;
+    setRemovingBg(true);
+    setError(null);
+
+    // Upload the original file first to get a URL
+    let fileToUpload = photo.file;
+    if (photo.file.type === 'image/heic' || photo.file.name?.toLowerCase().endsWith('.heic')) {
+      const converted = await heic2any({ blob: photo.file, toType: 'image/jpeg', quality: 0.85 });
+      fileToUpload = new File([converted], photo.file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
+    }
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+
+    const response = await base44.functions.invoke('removeBg', { image_url: file_url });
+    setBgRemovedUrl(response.data.result_url);
+    setRemovingBg(false);
   };
 
   const analyzePhoto = async () => {
@@ -36,8 +57,16 @@ export default function Home() {
       fileToUpload = new File([converted], photo.file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
     }
 
-    // Upload the file first
-    const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+    // If background was removed, upload the result as a data URL blob
+    let file_url;
+    if (bgRemovedUrl) {
+      const res = await fetch(bgRemovedUrl);
+      const blob = await res.blob();
+      const bgFile = new File([blob], 'bg-removed.png', { type: 'image/png' });
+      ({ file_url } = await base44.integrations.Core.UploadFile({ file: bgFile }));
+    } else {
+      ({ file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload }));
+    }
 
     // Ask AI to analyze the photo
     const result = await base44.integrations.Core.InvokeLLM({
@@ -85,6 +114,7 @@ Return ONLY a JSON object with keys: name, description (contains everything — 
     setAnalyzed(false);
     setSubmitted(false);
     setError(null);
+    setBgRemovedUrl(null);
   };
 
   return (
@@ -153,6 +183,38 @@ Return ONLY a JSON object with keys: name, description (contains everything — 
                 </div>
 
                 <PhotoUploader onPhotoSelected={handlePhotoSelected} photo={photo} />
+
+                {photo && !analyzed && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={removeBackground}
+                    disabled={removingBg}
+                    className="w-full py-3 border border-border bg-card text-foreground rounded-xl font-medium flex items-center justify-center gap-2.5 hover:bg-secondary transition-all disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                  >
+                    {removingBg ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Removing background...
+                      </>
+                    ) : (
+                      <>
+                        <Scissors className="w-4 h-4" />
+                        Remove Background (optional)
+                      </>
+                    )}
+                  </motion.button>
+                )}
+
+                {bgRemovedUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl overflow-hidden border border-border bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAH0lEQVQ4jWNgYGD4TxBmIIqBgYHhPxGaRg2gHAAAAP//AwAI+AL+hc2rNAAAAABJRU5ErkJggg==')] bg-repeat"
+                  >
+                    <img src={bgRemovedUrl} alt="Background removed" className="w-full h-full object-contain aspect-[4/3]" />
+                  </motion.div>
+                )}
 
                 {photo && !analyzed && (
                   <motion.button
