@@ -152,9 +152,9 @@ Return ONLY a JSON object with keys: name, description (measurements + hashtags 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-                className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-8"
+                className="mb-8"
               >
-                <CheckCircle className="w-12 h-12 text-green-600" />
+                <img src="https://media.base44.com/images/public/69d5a5fae0f16dce3d35a112/98839379e_depop.png" alt="Depop" className="w-24 h-24" />
               </motion.div>
               <h2 className="font-playfair text-4xl font-semibold text-foreground mb-3">
                 Upload Complete!
