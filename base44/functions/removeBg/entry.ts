@@ -8,7 +8,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { image_url } = await req.json();
+    const body = await req.json();
+    const image_url = body.image_url;
 
     const formData = new FormData();
     formData.append('image_url', image_url);
@@ -28,7 +29,15 @@ Deno.serve(async (req) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    // Safe base64 encoding for large buffers
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      binary += String.fromCharCode(...uint8Array.slice(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
     const dataUrl = `data:image/png;base64,${base64}`;
 
     return Response.json({ result_url: dataUrl });
