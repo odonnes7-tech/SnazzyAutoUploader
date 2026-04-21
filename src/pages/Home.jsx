@@ -5,9 +5,9 @@ import { Link } from 'react-router-dom';
 import heic2any from 'heic2any';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
-import ListingEditor from '@/components/ListingEditor';
+import ListingEditor from '@/components/ListingEditor.jsx';
 
-const EMPTY_LISTING = { name: '', price: '', description: '', boost: false, category: '', condition: '', color: '', source: '', age: '', style: '' };
+const EMPTY_LISTING = { name: '', price: '', description: '', boost: false, category: '', brand: '', condition: '', color: '', source: '', age: '', style: '', package_size: '', worldwide_shipping: false };
 
 async function prepareFile(file) {
   if (file.type === 'image/heic' || file.name?.toLowerCase().endsWith('.heic')) {
@@ -134,11 +134,14 @@ Return ONLY a JSON object with keys: name, description, category, condition, col
       bg_removed_url: bgRemovedUrl || null,
       boost: listing.boost || false,
       category: listing.category || '',
+      brand: listing.brand || '',
       condition: listing.condition || '',
       color: listing.color || '',
       source: listing.source || '',
       age: listing.age || '',
       style: listing.style || '',
+      package_size: listing.package_size || '',
+      worldwide_shipping: listing.worldwide_shipping || false,
     });
 
     setSubmitted(true);

@@ -21,6 +21,8 @@ const AGES = ['Modern', '00s', '90s', '80s', '70s', '60s', '50s', 'Antique'];
 const STYLES = ['Streetwear', 'Sportswear', 'Loungewear', 'Goth', 'Retro', 'Boho', 'Western',
   'Indie', 'Skater', 'Preppy', 'Minimalist', 'Y2K', 'Grunge', 'Classic'];
 
+const PACKAGE_SIZES = ['Extra Small', 'Small', 'Medium', 'Large', 'Extra Large'];
+
 function SelectField({ label, value, onChange, options, placeholder = 'Select...' }) {
   return (
     <div className="space-y-1.5">
@@ -33,6 +35,39 @@ function SelectField({ label, value, onChange, options, placeholder = 'Select...
         <option value="">{placeholder}</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
+    </div>
+  );
+}
+
+function TextField({ label, value, onChange, placeholder = '' }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 rounded-xl border border-border bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+      />
+    </div>
+  );
+}
+
+function ToggleField({ label, value, onChange, description }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <button
+        type="button"
+        onClick={() => onChange(!value)}
+        className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${value ? 'bg-primary' : 'bg-border'}`}
+      >
+        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${value ? 'left-5' : 'left-1'}`} />
+      </button>
     </div>
   );
 }
@@ -118,11 +153,19 @@ export default function ListingEditor({ listing, onChange }) {
       {showExtra && (
         <div className="space-y-4 px-4 py-4 bg-secondary/30 rounded-xl border border-border">
           <SelectField label="Category" value={listing.category || ''} onChange={(v) => update('category', v)} options={CATEGORIES} />
+          <TextField label="Brand" value={listing.brand || ''} onChange={(v) => update('brand', v)} placeholder="e.g. Nike, Levi's, Vintage" />
           <SelectField label="Condition" value={listing.condition || ''} onChange={(v) => update('condition', v)} options={CONDITIONS} />
           <SelectField label="Color" value={listing.color || ''} onChange={(v) => update('color', v)} options={COLORS} />
           <SelectField label="Source" value={listing.source || ''} onChange={(v) => update('source', v)} options={SOURCES} />
           <SelectField label="Age" value={listing.age || ''} onChange={(v) => update('age', v)} options={AGES} />
           <SelectField label="Style" value={listing.style || ''} onChange={(v) => update('style', v)} options={STYLES} />
+          <SelectField label="Package Size" value={listing.package_size || ''} onChange={(v) => update('package_size', v)} options={PACKAGE_SIZES} />
+          <ToggleField
+            label="Worldwide Shipping"
+            value={listing.worldwide_shipping || false}
+            onChange={(v) => update('worldwide_shipping', v)}
+            description="Offer international shipping on this item"
+          />
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Location</label>
             <div className="px-3 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground">

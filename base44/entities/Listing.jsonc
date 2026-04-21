@@ -37,6 +37,9 @@
     "category": {
       "type": "string"
     },
+    "brand": {
+      "type": "string"
+    },
     "condition": {
       "type": "string"
     },
@@ -51,6 +54,13 @@
     },
     "style": {
       "type": "string"
+    },
+    "package_size": {
+      "type": "string"
+    },
+    "worldwide_shipping": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
