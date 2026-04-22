@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { CheckCircle, AlertCircle, Loader2, KeyRound, ExternalLink } from 'lucide-react';
+
+export default function Settings() {
+  const [apiKey, setApiKey] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [status, setStatus] = useState(null); // null | 'success' | 'error'
+  const [message, setMessage] = useState('');
+
+  const testAndSave = async () => {
+    if (!apiKey.trim()) return;
+    setTesting(true);
+    setStatus(null);
+    setMessage('');
+
+    // Test the key by making a simple GET request via our backend
+    const response = await base44.functions.invoke('testDepopKey', { api_key: apiKey.trim() });
+
+    if (response.data?.success) {
+      setStatus('success');
+      setMessage('API key is valid and connected! Your listings will now be posted directly to Depop.');
+    } else {
+      setStatus('error');
+      setMessage(response.data?.error || 'Could not verify the API key. Please check it and try again.');
+    }
+    setTesting(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/">
+            <img
+              src="https://media.base44.com/images/public/69d5a5fae0f16dce3d35a112/44a38e278_image.png"
+              alt="Snazzy Boutique & Gifts"
+              className="h-12 w-auto"
+            />
+          </Link>
+          <nav className="flex items-center gap-4 text-sm font-medium">
+            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Upload</Link>
+            <Link to="/gallery" className="text-muted-foreground hover:text-foreground transition-colors">Gallery</Link>
+            <Link to="/analytics" className="text-muted-foreground hover:text-foreground transition-colors">Analytics</Link>
+            <Link to="/settings" className="text-foreground">Settings</Link>
+          </nav>
+        </div>
+      </header>
+
+      <main className="max-w-xl mx-auto px-6 py-12">
+        <h1 className="font-playfair text-3xl font-semibold text-foreground mb-2">Settings</h1>
+        <p className="text-muted-foreground text-sm mb-10">Configure your integrations</p>
+
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <KeyRound className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-foreground">Depop API Key</h2>
+              <p className="text-xs text-muted-foreground">Connect your Depop shop to auto-post listings</p>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground bg-secondary/50 rounded-xl px-4 py-3 leading-relaxed">
+            You need to apply for Depop Partner API access first. Contact{' '}
+            <a href="mailto:business@depop.com" className="text-primary underline">business@depop.com</a>{' '}
+            to get your API key. Once approved, paste it below.{' '}
+            <a
+              href="https://partnerapi.depop.com/api-docs/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary underline"
+            >
+              Learn more <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => { setApiKey(e.target.value); setStatus(null); }}
+              placeholder="pak_••••••••••••••••••••••••••••••••••••"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm font-mono"
+            />
+          </div>
+
+          {status === 'success' && (
+            <div className="flex items-start gap-2.5 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="flex items-start gap-2.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          <button
+            onClick={testAndSave}
+            disabled={!apiKey.trim() || testing}
+            className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {testing ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Verifying key...</>
+            ) : (
+              'Save & Test Connection'
+            )}
+          </button>
+        </div>
+      </main>
+    </div>
+  );
+}

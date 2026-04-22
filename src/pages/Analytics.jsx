@@ -133,6 +133,7 @@ export default function Analytics() {
             <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">Upload</Link>
             <Link to="/gallery" className="text-muted-foreground hover:text-foreground transition-colors">Gallery</Link>
             <Link to="/analytics" className="text-foreground">Analytics</Link>
+            <Link to="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</Link>
           </nav>
         </div>
       </header>

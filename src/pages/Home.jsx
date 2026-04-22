@@ -131,7 +131,7 @@ Return ONLY a JSON object with keys: name, description, category, brand, conditi
       })
     );
 
-    await base44.entities.Listing.create({
+    const listingData = {
       name: listing.name,
       price: listing.price,
       description: listing.description,
@@ -148,7 +148,16 @@ Return ONLY a JSON object with keys: name, description, category, brand, conditi
       style: listing.style || '',
       package_size: listing.package_size || '',
       worldwide_shipping: listing.worldwide_shipping || false,
-    });
+    };
+
+    // Try to post to Depop API if key is configured
+    let depopUrl = null;
+    const depopResponse = await base44.functions.invoke('postToDepop', { listing: listingData });
+    if (depopResponse.data?.success) {
+      depopUrl = `https://www.depop.com/products/${depopResponse.data.product_id}/`;
+    }
+
+    await base44.entities.Listing.create({ ...listingData, depop_url: depopUrl });
 
     setSubmitted(true);
     setSubmitting(false);
@@ -176,6 +185,7 @@ Return ONLY a JSON object with keys: name, description, category, brand, conditi
           <div className="flex items-center gap-4">
             <Link to="/gallery" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Gallery</Link>
             <Link to="/analytics" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Analytics</Link>
+            <Link to="/settings" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Settings</Link>
             {(photos.length > 0 || analyzed) && (
               <button
                 onClick={reset}
