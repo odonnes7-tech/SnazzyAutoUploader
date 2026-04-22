@@ -76,6 +76,8 @@ export default function Settings() {
         <h1 className="font-playfair text-3xl font-semibold text-foreground mb-2">Settings</h1>
         <p className="text-muted-foreground text-sm mb-10">Configure your integrations</p>
 
+        <p className="text-sm text-muted-foreground mb-6">Having trouble? Contact <a href="tel:7344314306" className="text-primary font-medium">734-431-4306</a></p>
+
         <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
