@@ -1,32 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { CheckCircle, AlertCircle, Loader2, KeyRound, ExternalLink } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, KeyRound, ExternalLink, Eye, EyeOff } from 'lucide-react';
 
 export default function Settings() {
   const [apiKey, setApiKey] = useState('');
-  const [testing, setTesting] = useState(false);
+  const [savedKey, setSavedKey] = useState('');
+  const [showKey, setShowKey] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null); // null | 'success' | 'error'
   const [message, setMessage] = useState('');
 
-  const testAndSave = async () => {
+  useEffect(() => {
+    base44.entities.AppSettings.filter({ key: 'depop_api_key' }).then((results) => {
+      if (results.length > 0) {
+        setSavedKey(results[0].value || '');
+        setApiKey(results[0].value || '');
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const saveAndTest = async () => {
     if (!apiKey.trim()) return;
-    setTesting(true);
+    setSaving(true);
     setStatus(null);
     setMessage('');
 
-    // Test the key by making a simple GET request via our backend
+    // Test the key first
     const response = await base44.functions.invoke('testDepopKey', { api_key: apiKey.trim() });
 
     if (response.data?.success) {
+      // Save to DB
+      const existing = await base44.entities.AppSettings.filter({ key: 'depop_api_key' });
+      if (existing.length > 0) {
+        await base44.entities.AppSettings.update(existing[0].id, { value: apiKey.trim() });
+      } else {
+        await base44.entities.AppSettings.create({ key: 'depop_api_key', value: apiKey.trim() });
+      }
+      setSavedKey(apiKey.trim());
       setStatus('success');
-      setMessage('API key is valid and connected! Your listings will now be posted directly to Depop.');
+      setMessage('Connected! Listings will now be posted directly to Depop.');
     } else {
       setStatus('error');
-      setMessage(response.data?.error || 'Could not verify the API key. Please check it and try again.');
+      setMessage(response.data?.error || 'Invalid API key. Please check it and try again.');
     }
-    setTesting(false);
+
+    setSaving(false);
   };
+
+  const isKeyChanged = apiKey !== savedKey;
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,32 +85,52 @@ export default function Settings() {
               <h2 className="font-semibold text-foreground">Depop API Key</h2>
               <p className="text-xs text-muted-foreground">Connect your Depop shop to auto-post listings</p>
             </div>
+            {savedKey && (
+              <span className="ml-auto flex items-center gap-1 text-xs font-medium text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+                <CheckCircle className="w-3 h-3" /> Connected
+              </span>
+            )}
           </div>
 
           <div className="text-xs text-muted-foreground bg-secondary/50 rounded-xl px-4 py-3 leading-relaxed">
-            You need to apply for Depop Partner API access first. Contact{' '}
-            <a href="mailto:business@depop.com" className="text-primary underline">business@depop.com</a>{' '}
-            to get your API key. Once approved, paste it below.{' '}
+            Apply for Depop Partner API access at{' '}
+            <a href="mailto:business@depop.com" className="text-primary underline">business@depop.com</a>.
+            Once approved, paste your key below — it saves automatically.{' '}
             <a
               href="https://partnerapi.depop.com/api-docs/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary underline"
             >
-              Learn more <ExternalLink className="w-3 h-3" />
+              API docs <ExternalLink className="w-3 h-3" />
             </a>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">API Key</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => { setApiKey(e.target.value); setStatus(null); }}
-              placeholder="pak_••••••••••••••••••••••••••••••••••••"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm font-mono"
-            />
-          </div>
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading...
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">API Key</label>
+              <div className="relative">
+                <input
+                  type={showKey ? 'text' : 'password'}
+                  value={apiKey}
+                  onChange={(e) => { setApiKey(e.target.value); setStatus(null); }}
+                  placeholder="pak_••••••••••••••••••••••••••••••••••••"
+                  className="w-full px-4 py-3 pr-11 rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all text-sm font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKey((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
 
           {status === 'success' && (
             <div className="flex items-start gap-2.5 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
@@ -103,14 +147,16 @@ export default function Settings() {
           )}
 
           <button
-            onClick={testAndSave}
-            disabled={!apiKey.trim() || testing}
+            onClick={saveAndTest}
+            disabled={!apiKey.trim() || saving || !isKeyChanged}
             className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {testing ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Verifying key...</>
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Verifying & saving...</>
+            ) : savedKey && !isKeyChanged ? (
+              <><CheckCircle className="w-4 h-4" /> Key saved</>
             ) : (
-              'Save & Test Connection'
+              'Save & Connect'
             )}
           </button>
         </div>

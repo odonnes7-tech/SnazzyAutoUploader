@@ -1,0 +1,17 @@
+{
+  "name": "AppSettings",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique setting key, e.g. depop_api_key"
+    },
+    "value": {
+      "type": "string",
+      "description": "The setting value"
+    }
+  },
+  "required": [
+    "key"
+  ]
+}

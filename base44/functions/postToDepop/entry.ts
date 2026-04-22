@@ -112,7 +112,12 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const DEPOP_API_KEY = Deno.env.get('DEPOP_API_KEY');
+  // Read API key from DB (set via Settings page)
+  let DEPOP_API_KEY = Deno.env.get('DEPOP_API_KEY');
+  if (!DEPOP_API_KEY) {
+    const settings = await base44.asServiceRole.entities.AppSettings.filter({ key: 'depop_api_key' });
+    DEPOP_API_KEY = settings[0]?.value || null;
+  }
   if (!DEPOP_API_KEY) {
     return Response.json({ error: 'Depop API key not configured. Please add it in Settings.' }, { status: 400 });
   }
